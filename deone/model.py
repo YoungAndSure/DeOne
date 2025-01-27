@@ -124,3 +124,18 @@ class BetterRNN(Model) :
     y = self.rnn(x)
     y = self.fc(y)
     return y
+
+class Cbow(Model) :
+  def __init__(self, hidden_size, vocab_size) :
+    super().__init__()
+
+    self.l0 = Linear(out_size=hidden_size, has_bias=False)
+    self.l1 = Linear(out_size=vocab_size, has_bias=False)
+
+  def forward(self, xs) :
+    y = None
+    for x in xs :
+      y = self.l0(x) if y is None else y + self.l0(x)
+    y /= len(xs)
+    y = self.l1(y)
+    return y
