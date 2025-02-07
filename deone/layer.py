@@ -176,3 +176,23 @@ class LSTM(Layer) :
         self.h = h
 
         return h
+
+class Embedding(Layer) :
+    def __init__(self, in_size, out_size, dtype=np.float32) :
+        super().__init__()
+        self.I = in_size
+        self.O = out_size
+        self.W = Parameter(None, name='W')
+        self.dtype = dtype
+        self._init_W()
+
+    def _init_W(self) :
+        if Config.close_random :
+            W_data = np.zeros((self.I, self.O)).astype(self.dtype) * np.sqrt(1 / self.I)
+        else :
+            W_data = np.random.randn(self.I, self.O).astype(self.dtype) * np.sqrt(1 / self.I)
+        self.W = Parameter(W_data, name='W')
+
+    def forward(self, idx) :
+        y = get_item(self.W, idx)
+        return y

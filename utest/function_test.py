@@ -507,4 +507,13 @@ class AddTest(unittest.TestCase) :
       self.assertTrue(np.array_equal(t, [1,10,19,28,37,46,55,64,73,82]))
       break
 
+  def test_embedding_layer(self) :
+    layer = Embedding(in_size=10, out_size=3)
+    idx = np.array([0, 0, 1])
+    y = layer(idx)
+    self.assertEqual(y.data.shape, (3, 3))
+    y.backward()
+    self.assertTrue(np.array_equal(layer.W.grad.data[0], [2,2,2]))
+    self.assertTrue(np.array_equal(layer.W.grad.data[1], [1,1,1]))
+
 unittest.main()
