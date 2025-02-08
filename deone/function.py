@@ -238,7 +238,10 @@ def linear(*input) :
 class GetItem(Function) :
     def __init__(self, slices) :
         # slices不能是个Variable，对slices求导数也没意义
-        self.slices = slices
+        if isinstance(slices, Variable) :
+            self.slices = slices.data
+        else :
+            self.slices = slices
     def forward(self, x) :
         return x[self.slices]
     def backward(self, gy) :

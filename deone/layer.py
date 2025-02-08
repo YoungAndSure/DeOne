@@ -194,5 +194,6 @@ class Embedding(Layer) :
         self.W = Parameter(W_data, name='W')
 
     def forward(self, idx) :
+        # idx类型是Variable，get_item中的slices不能是Variable,进行了变换
         y = get_item(self.W, idx)
         return y

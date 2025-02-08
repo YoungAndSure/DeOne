@@ -129,7 +129,8 @@ class Cbow(Model) :
   def __init__(self, hidden_size, vocab_size) :
     super().__init__()
 
-    self.l0 = Linear(out_size=hidden_size, has_bias=False)
+    #self.l0 = Linear(out_size=hidden_size, has_bias=False)
+    self.l0 = Embedding(in_size=vocab_size , out_size=hidden_size)
     self.l1 = Linear(out_size=vocab_size, has_bias=False)
 
   def forward(self, xs) :
@@ -137,5 +138,7 @@ class Cbow(Model) :
     for x in xs :
       y = self.l0(x) if y is None else y + self.l0(x)
     y /= len(xs)
+    # l0 用Linear输出的y是二维的，用Embedding输出是一维的,需要加一个轴
+    y = y[np.newaxis, :]
     y = self.l1(y)
     return y
