@@ -197,3 +197,26 @@ class Embedding(Layer) :
         # idx类型是Variable，get_item中的slices不能是Variable,进行了变换
         y = get_item(self.W, idx)
         return y
+
+class EmbeddingDot(Layer) :
+    def __init__(self, in_size, out_size, dtype=np.float32) :
+        super().__init__()
+        self.I = in_size
+        self.O = out_size
+        self.W = Parameter(None, name='W')
+        self.dtype = dtype
+        self._init_W()
+
+    def _init_W(self) :
+        # NOTE:attention please, 因为forward输入的idx切片“只能”按行取，所以这里的权重要转置一下
+        if Config.close_random :
+            W_data = np.zeros((self.O, self.I)).astype(self.dtype) * np.sqrt(1 / self.I)
+        else :
+            W_data = np.random.randn(self.O, self.I).astype(self.dtype) * np.sqrt(1 / self.I)
+        self.W = Parameter(W_data, name='W')
+
+    def forward(self, h, idx) :
+        emb = get_item(self.W, idx)
+        y = h * emb
+        out = sum_to(y, (idx.shape[0], 1))
+        return out

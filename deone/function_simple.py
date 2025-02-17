@@ -83,6 +83,17 @@ def softmax_cross_entropy_simple(x, t) :
   y = -1 * sum(p) / N
   return y
 
+def sigmoid_cross_entropy_simple(x, t) :
+  x = as_variable(x)
+  t = as_variable(t)
+
+  p = sigmod_simple(x)
+  p = clip(p, 1e-15, 1.0)
+  p = log(p)
+  np = log(1 - p)
+  y = t * p + (1 - t) * np
+  return y
+
 def accuracy(y, t) :
   y, t = as_variable(y), as_variable(t)
   pred = y.data.argmax(axis=1).reshape(t.shape)
