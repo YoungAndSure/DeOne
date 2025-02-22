@@ -134,6 +134,25 @@ class RNN(Layer) :
         self.h = y
         return y
 
+class TimeRNN(Layer) :
+    def __init__(self, T, hidden_size, in_size=None) :
+        super().__init__()
+        self.rnn_layers = []
+        for i in range(T) :
+            self.rnn_layers.append(RNN(hidden_size, in_size = in_size))
+        self.h = None
+        self.T = T
+
+    def forward(self, xs) :
+        B, T, H = xs.shape
+        if T != self.T :
+            raise ValueError("T error, init T:{}".format(self.T))
+        
+        for t in range(T) :
+            rnn = self.rnn_layers[t]
+            prev_h = rnn(xs[:, t, :])
+
+
 class LSTM(Layer) :
     def __init__(self, hidden_size, in_size=None) :
         super().__init__()
