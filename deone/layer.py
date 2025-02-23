@@ -126,13 +126,57 @@ class RNN(Layer) :
     def reset_status(self) :
         self.h = None
     
-    def forward(self, x) :
-        if self.h is None :
+    # self.h存了t时的输出，下次t+1调用时用self.h计算.这是一种串行执行的方式
+    # 在这种使用方式下，必须保证就这一个对象，循环调用这一个对象的forward
+    # 但是在TimeRNN中，是多个rnn对象连接在一起，rnn 1 接受的是rnn 0的输出
+    # 也就必须得从rnn 0获取到输出，然后传入给rnn 1才行，rnn 1的h是从外部来的
+    # 所以必须加一个入参h，为了不影响之前的用法，给h赋默认值
+    # 不过，不管是几个rnn，其实都是串行，耗时一样，内存多个rnn > 一个rnn
+    def forward(self, x, h=None) :
+        if h is None :
+            h = self.h
+
+        if h is None :
             y = tanh(self.x2h(x))
         else :
-            y = tanh(self.x2h(x) + self.h2h(self.h))
+            y = tanh(self.x2h(x) + self.h2h(h))
         self.h = y
         return y
+
+class TimeRNN(Layer) :
+    def __init__(self, T, hidden_size, in_size=None, stateful=False) :
+        super().__init__()
+        self.rnn_layers = []
+        for i in range(T) :
+            self.rnn_layers.append(RNN(hidden_size, in_size = in_size))
+        self.h = None
+        self.T = T
+        self.stateful = stateful
+    
+    def set_states(self, h) :
+        self.h = h
+
+    def reset_status(self) :
+        self.h = None
+
+    def forward(self, xs) :
+        BATCH, TIME, DENSE = xs.shape
+        if TIME != self.T :
+            raise ValueError("T error, init T:{}".format(self.T))
+
+        h = None 
+        for t in range(self.T) :
+            rnn = self.rnn_layers[t]
+            if h is None :
+                h = rnn(xs[:, t, :])
+            else :
+                h = rnn(xs[:, t, :], h)
+        
+        if self.stateful :
+            self.h = h
+        
+        return h
+
 
 class LSTM(Layer) :
     def __init__(self, hidden_size, in_size=None) :
