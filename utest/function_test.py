@@ -525,4 +525,15 @@ class AddTest(unittest.TestCase) :
     self.assertEqual(y.data.shape, (2, 1))
     y.backward()
 
+  def test_time_rnn(self) :
+    # 3 batch, 4 time, 5 dense
+    xs = Variable(np.random.rand(3, 4, 5))
+    BATCH, TIME, DENSE = xs.shape
+    hidden_size = 10
+    time_rnn = TimeRNN(TIME, hidden_size, stateful=True)
+    hs = time_rnn(xs)
+    self.assertEqual(hs.shape, (BATCH, hidden_size))
+    hs.backward()
+    self.assertEqual(xs.grad.shape, (BATCH, TIME, DENSE))
+
 unittest.main()
