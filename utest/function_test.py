@@ -476,14 +476,15 @@ class AddTest(unittest.TestCase) :
     self.assertTrue(np.array_equal(x.grad.shape, (1, 3, 224, 224)))
 
   def test_rnn(self) :
-    x0 = Variable(np.random.rand(1,1))
+    x0 = Variable(np.random.rand(8,16))
     rnn = RNN(10)
     y = rnn(x0)
-    self.assertTrue(np.array_equal(y.shape, (1,10)))
-    x1 = Variable(np.random.rand(1,1))
+    self.assertTrue(np.array_equal(y.shape, (8,10)))
+
+    x1 = Variable(np.random.rand(8,16))
     z = rnn(x1)
-    self.assertTrue(np.array_equal(z.shape, (1,10)))
-    self.assertTrue(np.array_equal(rnn.h.shape, (1,10)))
+    self.assertTrue(np.array_equal(z.shape, (8,10)))
+    self.assertTrue(np.array_equal(rnn.h.shape, (8,10)))
     rnn.reset_status()
     self.assertEqual(rnn.h, None)
   
