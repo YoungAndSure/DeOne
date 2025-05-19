@@ -1,6 +1,7 @@
 import numpy as np
 import weakref
 from deone.core import *
+import logging
 
 class Add(Function) :
     def forward(self, x0, x1) :
@@ -170,7 +171,8 @@ def sum_to(x, shape) :
 
 class MatMul(Function) :
     def forward(self, x, W) :
-        return np.dot(x, W)
+        y = np.matmul(x, W)
+        return y
     def backward(self, gy) :
         x = self.inputs[0]
         W = self.inputs[1]
@@ -182,8 +184,13 @@ class MatMul(Function) :
         # 这段代码保留，理论上不会执行
         #if gy.data.ndim == 1 :
         #    gy.data = gy.data.reshape(1, len(gy.data))
-        gx = matmul(gy, W.T)
-        gW = matmul(x.T, gy)
+        if len(gy.shape) == 2 :
+            gx = matmul(gy, W.T)
+            gW = matmul(x.T, gy)
+        elif len(gy.shape) == 3 :
+            # sorry, too ugly, the pytorch operator need not process batch dim,
+            gx = matmul(gy, W.transpose(0, 2, 1))
+            gW = matmul(x.transpose(0, 2, 1), gy)
         return (gx, gW)
 def matmul(x, W) :
     func = MatMul()
@@ -355,3 +362,40 @@ class Utils :
 
         gy = gy.reshape(shape)  # reshape
         return gy
+
+class Reshape(Function) :
+    def __init__(self, shape) :
+        self.output_shape = shape
+    def forward(self, x) :
+        self.input_shape = x.shape
+        y = x.reshape(self.output_shape)
+        return y
+    def backward(self, gy) :
+        return reshape(gy, self.input_shape)
+def reshape(x, shape) :
+    func = Reshape(shape)
+    return func(x)
+
+class Transpose(Function) :
+    def __init__(self, axis) :
+        self.input_axis = axis
+    def forward(self, x) :
+        # 不用特殊处理一维数据, 一维实际就是不能转置的
+        #if x.ndim == 1 :
+        #    y = np.transpose(x).reshape(-1, 1)
+        #elif x.shape[-1] == 1 :
+        #    y = np.transpose(x).ravel()
+        #else :
+        y = np.transpose(x) if (self.input_axis is None or len(self.input_axis) == 0) else np.transpose(x, self.input_axis)
+        return y
+        #return np.transpose(x) if x.ndim != 1 else np.transpose(x).reshape(-1, 1)
+    def backward(self, gy):
+        # gy的类型是 Variable , 反向传播需要建立图，也就是要调用 deone 的方法实现
+        if self.input_axis is None :
+            return transpose(gy)
+        inv_axis = tuple(np.argsort([ax % len(self.input_axis) for ax in self.input_axis]))
+        gx = transpose(gy, inv_axis)
+        return gx
+def transpose(x, axis=None) :
+    func = Transpose(axis)
+    return func(x)

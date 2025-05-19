@@ -4,6 +4,7 @@ from deone.function import *
 from deone.function_simple import *
 from deone.function_conv import *
 from external.utils import *
+import logging
 
 class Model(L.Layer) :
   def plot(self, *input, file_name='model.png') :
@@ -144,14 +145,14 @@ class SimpleCbow(Model) :
 class Cbow(Model) :
   def __init__(self, hidden_size, vocab_size) :
     super().__init__()
+    self.in_emb = L.Embedding(vocab_size, hidden_size)
+    self.out_emb = L.Embedding(vocab_size, hidden_size)
 
-    self.l0 = Embedding(in_size=vocab_size , out_size=hidden_size)
-    self.l1 = EmbeddingDot(in_size=hidden_size, out_size=vocab_size)
-
-  def forward(self, contexts, target) :
-    y = None
-    for x in contexts :
-      y = self.l0(x) if y is None else y + self.l0(x)
-    y /= len(contexts)
-    y = self.l1(y, target)
+  def forward(self, contexts, t) :
+    con_emb = self.in_emb(contexts)
+    BATCH_SIZE, CONTEXT_SIZE, EMBEDDING_DIM = con_emb.shape
+    emb_sum = con_emb.sum(dim=1, keepdim=True)
+    target_emb = self.out_emb(t)
+    target_emb = target_emb.transpose(0, 2, 1)
+    y = emb_sum.matmul(target_emb)
     return y

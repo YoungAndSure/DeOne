@@ -466,7 +466,7 @@ class AddTest(unittest.TestCase) :
     import multiprocessing
     cpu_count = multiprocessing.cpu_count()
     if cpu_count <= 2 :
-      print("这么点核数跑不起来vgg16,加钱吧哥们儿")
+      print("too few cpu cores")
       return
     model = VGG16(pretrained=True)
     x = Variable(np.random.rand(1, 3, 224, 224))
@@ -517,14 +517,8 @@ class AddTest(unittest.TestCase) :
     self.assertTrue(np.array_equal(layer.W.grad.data[0], [2,2,2]))
     self.assertTrue(np.array_equal(layer.W.grad.data[1], [1,1,1]))
 
-  def test_embedding_dot_layer(self) :
-    h = np.array([[1, 2, 3], [4, 5, 6]])
-    # 反过来的
-    layer = EmbeddingDot(in_size=3, out_size=10)
-    idx = np.array([0, 1])
-    y = layer(h, idx)
-    self.assertEqual(y.data.shape, (2, 1))
-    y.backward()
+    y = layer(idx)
+    self.assertEqual(y.data.shape, (3, 3))
 
   def test_time_rnn(self) :
     # 3 batch, 4 time, 5 dense

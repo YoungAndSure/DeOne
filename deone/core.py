@@ -2,6 +2,7 @@ import numpy as np
 import weakref
 from deone.config import *
 import deone.util
+import logging
 
 class Variable :
     def __init__(self, data, name=None) :
@@ -97,13 +98,24 @@ class Variable :
         # 如果传入2,3，这里读出来反倒是(2,3)，可以直接透传
         if len(shape) == 1 and isinstance(shape[0], (tuple, list)) :
             shape = shape[0]
-        return reshape(self, shape)
+        import deone.function as F
+        return F.reshape(self, shape)
     
     def transpose(self, *axis) :
-        return transpose(self, axis)
+        import deone.function as F
+        return F.transpose(self, axis)
     @property
     def T(self) :
-        return transpose(self)
+        import deone.function as F
+        return F.transpose(self)
+
+    def sum(self, dim, keepdim=False) :
+        import deone.function as F
+        return F.sum(self, dim, keepdim)
+
+    def matmul(self, W) :
+        import deone.function as F
+        return F.matmul(self, W)
 
 def as_variable(input) :
     if not isinstance(input, Variable) :
@@ -153,40 +165,3 @@ class Function :
     # input: Variable, output: Varibale
     def backward(self, gy) :
         raise NotImplementedError()
-
-class Reshape(Function) :
-    def __init__(self, shape) :
-        self.output_shape = shape
-    def forward(self, x) :
-        self.input_shape = x.shape
-        y = x.reshape(self.output_shape)
-        return y
-    def backward(self, gy) :
-        return reshape(gy, self.input_shape)
-def reshape(x, shape) :
-    func = Reshape(shape)
-    return func(x)
-
-class Transpose(Function) :
-    def __init__(self, axis) :
-        self.input_axis = axis
-    def forward(self, x) :
-        # 不用特殊处理一维数据, 一维实际就是不能转置的
-        #if x.ndim == 1 :
-        #    y = np.transpose(x).reshape(-1, 1)
-        #elif x.shape[-1] == 1 :
-        #    y = np.transpose(x).ravel()
-        #else :
-        y = np.transpose(x) if (self.input_axis is None or len(self.input_axis) == 0) else np.transpose(x, self.input_axis)
-        return y
-        #return np.transpose(x) if x.ndim != 1 else np.transpose(x).reshape(-1, 1)
-    def backward(self, gy):
-        # gy的类型是 Variable , 反向传播需要建立图，也就是要调用 deone 的方法实现
-        if self.input_axis is None :
-            return transpose(gy)
-        inv_axis = tuple(np.argsort([ax % len(self.input_axis) for ax in self.input_axis]))
-        gx = transpose(gy, inv_axis)
-        return gx
-def transpose(x, axis=None) :
-    func = Transpose(axis)
-    return func(x)

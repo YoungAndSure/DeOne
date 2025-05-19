@@ -1,7 +1,15 @@
 import os
 import subprocess
+import logging
 
 from deone.core import *
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(pathname)s:%(lineno)d %(funcName)s() %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    handlers=[logging.StreamHandler()]
+)
 
 def _dot_var(v, verbose=False):
   dot_var = '{} [label="{}", color=orange, style=filled]\n'
