@@ -531,4 +531,14 @@ class AddTest(unittest.TestCase) :
     hs.backward()
     self.assertEqual(xs.grad.shape, (BATCH, TIME, DENSE))
 
+  def test_dim(self) :
+    x = Variable(np.array(3))
+    self.assertEqual(x.dim(), 0)
+    x = Variable(np.array([[]]))
+    self.assertEqual(x.dim(), 2)
+    x = Variable(np.array([1,2,3]))
+    self.assertEqual(x.dim(), 1)
+    x = Variable(np.array([[1,2,3]]))
+    self.assertEqual(x.dim(), 2)
+
 unittest.main()

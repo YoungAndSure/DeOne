@@ -117,6 +117,9 @@ class Variable :
         import deone.function as F
         return F.matmul(self, W)
 
+    def dim(self) :
+        return self.data.ndim
+
 def as_variable(input) :
     if not isinstance(input, Variable) :
         return Variable(input)
