@@ -155,6 +155,13 @@ class AddTest(unittest.TestCase) :
     y.backward()
     self.assertTrue(np.array_equal(x.grad.data, np.array([[3.0, 7.0, 11.0]])))
 
+    x3d = Variable(np.array([[[1.0, 2.0, 3.0]]]))
+    W3d = Variable(np.array([[[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]]))
+    y3d = matmul(x3d, W3d)
+    self.assertTrue(np.array_equal(y3d.data, np.array([[[22, 28]]])))
+    y3d.backward()
+    self.assertTrue(np.array_equal(x3d.grad.data, np.array([[[3.0, 7.0, 11.0]]])))
+
   def test_mean_square_error(self) :
     x0 = Variable(np.array([4,5,6]))
     x1 = Variable(np.array([7,8,9]))

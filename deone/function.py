@@ -184,10 +184,10 @@ class MatMul(Function) :
         # 这段代码保留，理论上不会执行
         #if gy.data.ndim == 1 :
         #    gy.data = gy.data.reshape(1, len(gy.data))
-        if len(gy.shape) == 2 :
+        if gy.dim() == 2 :
             gx = matmul(gy, W.T)
             gW = matmul(x.T, gy)
-        elif len(gy.shape) == 3 :
+        elif gy.dim() == 3 :
             # sorry, too ugly, the pytorch operator need not process batch dim,
             gx = matmul(gy, W.transpose(0, 2, 1))
             gW = matmul(x.transpose(0, 2, 1), gy)
