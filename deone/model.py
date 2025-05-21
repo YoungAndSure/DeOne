@@ -149,6 +149,8 @@ class Cbow(Model) :
     self.out_emb = L.Embedding(vocab_size, hidden_size)
 
   def forward(self, contexts, t) :
+    assert(contexts.dim() == t.dim())
+
     con_emb = self.in_emb(contexts)
     BATCH_SIZE, CONTEXT_SIZE, EMBEDDING_DIM = con_emb.shape
     emb_sum = con_emb.sum(dim=1, keepdim=True)
